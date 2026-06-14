@@ -34,7 +34,7 @@ jobs:
         id: check
         run: |
           LOCAL=$(git rev-parse HEAD)
-          UPSTREAM=$(git rev-parse upstream/main)
+          UPSTREAM=$(git rev-parse upstream/v2)
           if [ "$LOCAL" = "$UPSTREAM" ]; then
             echo "No upstream changes detected"
             echo "changed=false" >> $GITHUB_OUTPUT
@@ -47,7 +47,7 @@ jobs:
         if: steps.check.outputs.changed == 'true'
         run: |
           # 合并上游更改，保留我们的更改
-          git merge upstream/main --no-edit --strategy-option=ours || {
+          git merge upstream/v2 --no-edit --strategy-option=ours || {
             echo "Merge conflict detected, resolving..."
             # 如果有冲突，优先保留我们的更改
             git add .
