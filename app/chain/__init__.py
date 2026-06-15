@@ -28,9 +28,8 @@ from app.log import logger
 from app.schemas import (
     RateLimitExceededException,
     TransferInfo,
-    TransferTorrent,
     ExistMediaInfo,
-    DownloadingTorrent,
+    DownloaderTorrent,
     CommingMessage,
     Notification,
     WebhookEventInfo,
@@ -1221,16 +1220,22 @@ class ChainBase(metaclass=ABCMeta):
             status: TorrentStatus = None,
             hashs: Union[list, str] = None,
             downloader: Optional[str] = None,
-    ) -> Optional[List[Union[TransferTorrent, DownloadingTorrent]]]:
+            include_all_tags: bool = False,
+    ) -> Optional[List[DownloaderTorrent]]:
         """
         获取下载器种子列表
         :param status:  种子状态
         :param hashs:  种子Hash
         :param downloader:  下载器
+        :param include_all_tags:  是否包含未打内置标签的下载任务
         :return: 下载器中符合状态的种子列表
         """
         return self.run_module(
-            "list_torrents", status=status, hashs=hashs, downloader=downloader
+            "list_torrents",
+            status=status,
+            hashs=hashs,
+            downloader=downloader,
+            include_all_tags=include_all_tags,
         )
 
     def transfer(
@@ -1347,6 +1352,61 @@ class ChainBase(metaclass=ABCMeta):
         :return: bool
         """
         return self.run_module("set_torrents_tag", hashs=hashs, tags=tags, downloader=downloader)
+
+    def update_torrent(
+            self,
+            hash_string: str,
+            downloader: Optional[str] = None,
+            download_limit: Optional[float] = None,
+            upload_limit: Optional[float] = None,
+            tracker_list: Optional[list] = None,
+            save_path: Optional[str] = None,
+            category: Optional[str] = None,
+            ratio_limit: Optional[float] = None,
+            seeding_time_limit: Optional[int] = None,
+    ) -> Optional[Dict[str, bool]]:
+        """
+        修改下载任务属性。
+        :param hash_string: 种子Hash
+        :param downloader: 下载器
+        :param download_limit: 下载限速，单位 KB/s
+        :param upload_limit: 上传限速，单位 KB/s
+        :param tracker_list: Tracker URL列表
+        :param save_path: 保存目录
+        :param category: 分类
+        :param ratio_limit: 分享率限制
+        :param seeding_time_limit: 做种时间限制，单位分钟
+        :return: 各项修改结果
+        """
+        return self.run_module(
+            "update_torrent",
+            hash_string=hash_string,
+            downloader=downloader,
+            download_limit=download_limit,
+            upload_limit=upload_limit,
+            tracker_list=tracker_list,
+            save_path=save_path,
+            category=category,
+            ratio_limit=ratio_limit,
+            seeding_time_limit=seeding_time_limit,
+        )
+
+    def get_torrent_trackers(
+            self,
+            hash_string: str,
+            downloader: Optional[str] = None,
+    ) -> Optional[Dict[str, List[str]]]:
+        """
+        查询下载任务Tracker列表。
+        :param hash_string: 种子Hash
+        :param downloader: 下载器
+        :return: 下载器名称到Tracker列表的映射
+        """
+        return self.run_module(
+            "get_torrent_trackers",
+            hash_string=hash_string,
+            downloader=downloader,
+        )
 
     def torrent_files(
             self, tid: str, downloader: Optional[str] = None
