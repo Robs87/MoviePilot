@@ -1309,6 +1309,20 @@ class PluginManager(ConfigReloadMixin, metaclass=Singleton):
         plugins.sort(key=lambda x: x.plugin_order if hasattr(x, "plugin_order") else 0)
         return plugins
 
+    def get_local_plugin_version(self, pid: str) -> Optional[str]:
+        """
+        获取指定已安装插件的本地版本，不触发全部插件的状态、页面和权限计算。
+
+        插件类由运行期动态加载，旧插件可能未声明版本属性，因此缺失时返回 None。
+        """
+        installed_apps = SystemConfigOper().get(SystemConfigKey.UserInstalledPlugins) or []
+        if pid not in installed_apps:
+            return None
+        plugin_class = self._plugins.get(pid)
+        if not plugin_class:
+            return None
+        return getattr(plugin_class, "plugin_version", None)
+
     def get_local_repo_plugins(self) -> List[schemas.Plugin]:
         """
         获取本地插件仓库目录中的插件信息
@@ -1538,14 +1552,15 @@ class PluginManager(ConfigReloadMixin, metaclass=Singleton):
         if plugin_info.get("icon"):
             plugin.plugin_icon = plugin_info.get("icon")
         # 标签
-        if plugin_info.get("labels"):
-            plugin.plugin_label = plugin_info.get("labels")
+        plugin.plugin_label = self._normalize_plugin_label(plugin_info.get("labels"))
         # 作者
         if plugin_info.get("author"):
             plugin.plugin_author = plugin_info.get("author")
         # 更新历史
         if plugin_info.get("history"):
             plugin.history = plugin_info.get("history")
+        # Release 能力位来自插件市场索引，用于前端展示和后端安装入口双重校验。
+        plugin.release = bool(plugin_info.get("release"))
         # 仓库链接
         plugin.repo_url = market
         # 本地标志
@@ -1554,6 +1569,22 @@ class PluginManager(ConfigReloadMixin, metaclass=Singleton):
         plugin.add_time = add_time
 
         return plugin
+
+    @staticmethod
+    def _normalize_plugin_label(labels: Any) -> Optional[str]:
+        """
+        规整插件市场标签字段，兼容旧字符串和新列表格式。
+
+        :param labels: 插件市场 package 中的 labels 字段
+        :return: 用空格拼接后的标签字符串，无法识别或为空时返回 None
+        """
+        if isinstance(labels, str):
+            label = labels.strip()
+            return label or None
+        if isinstance(labels, list):
+            normalized_labels = [str(item).strip() for item in labels if str(item).strip()]
+            return " ".join(normalized_labels) or None
+        return None
 
     async def async_get_online_plugins(self, force: bool = False) -> List[schemas.Plugin]:
         """
