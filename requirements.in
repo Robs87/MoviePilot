@@ -94,3 +94,16 @@ pytest~=9.0.3
 p115client~=0.0.9
 p115center-sdk==0.0.17
 aligo>=6.2.0
+# p115strmhelper plugin dependencies
+diskcache~=5.6.3
+python-sqlitedict==0.0.3
+p115rsacipher==0.0.1
+sentry-sdk~=2.63.0
+qrcode_terminal~=0.8
+pyahocorasick~=2.3.0
+mfusepy~=3.1.0
+slippers-proxy~=0.3.0
+full_strm_sync==0.1.5
+txt_tree_storage==0.2.0
+share_strm_scan==0.2.1
+numpy
