@@ -12,7 +12,7 @@ aiofiles~=25.1.0
 aioshutil~=1.6
 alembic~=1.18.4
 anyio~=4.13.0
-bcrypt~=4.3.0
+bcrypt~=4.0.1
 regex~=2026.5.9
 cn2an~=0.5.24
 dateparser~=1.4.0
@@ -94,5 +94,5 @@ ddgs~=9.14.4
 websocket-client~=1.9.0
 lark-oapi~=1.6.8
 pytest~=9.0.3
-p115client~=0.0.8.6.8
+p115client~=0.0.9
 p115center-sdk==0.0.17
