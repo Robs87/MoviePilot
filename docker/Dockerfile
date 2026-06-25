@@ -139,6 +139,25 @@ WORKDIR /app
 COPY --from=prepare_code /app /app
 COPY --from=prepare_code /public /public
 
+# Install p115strmhelper plugin's bundled wheels (custom p115client + Rust extensions)
+RUN set -e; \
+    WHEELS=/app/app/plugins/p115strmhelper/wheels; \
+    if [ -d "$WHEELS" ]; then \
+        ARCH=$(uname -m); \
+        if [ "$ARCH" = "x86_64" ]; then PLAT="manylinux_2_17_x86_64.manylinux2014_x86_64"; \
+        elif [ "$ARCH" = "aarch64" ]; then PLAT="manylinux_2_17_aarch64.manylinux2014_aarch64"; \
+        else PLAT=""; fi; \
+        pip install --no-deps --force-reinstall \
+            "$WHEELS"/p115client-0.0.8.10-py3-none-any.whl \
+            "$WHEELS"/p115rsacipher-0.0.1-py3-none-any.whl \
+            $(ls "$WHEELS"/full_strm_sync-*-${PLAT}.whl 2>/dev/null) \
+            $(ls "$WHEELS"/txt_tree_storage-*-${PLAT}.whl 2>/dev/null) \
+            $(ls "$WHEELS"/share_strm_scan-*-${PLAT}.whl 2>/dev/null) \
+            $(ls "$WHEELS"/pyahocorasick-*-${PLAT}*.whl 2>/dev/null | head -1) \
+            "$WHEELS"/qrcode_terminal-0.8-py3-none-any.whl \
+            "$WHEELS"/orjson-3.11.7-*.whl 2>/dev/null || true; \
+    fi
+
 RUN cp -f /app/docker/nginx.common.conf /etc/nginx/common.conf \
     && cp -f /app/docker/nginx.template.conf /etc/nginx/nginx.template.conf \
     && cp -f /app/docker/update.sh /usr/local/bin/mp_update.sh \
