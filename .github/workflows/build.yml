@@ -36,6 +36,7 @@ jobs:
           tags: |
             type=raw,value=${{ env.app_version }}
             type=raw,value=latest
+            type=raw,value=v2
 
       - name: Set Up QEMU
         uses: docker/setup-qemu-action@v3
